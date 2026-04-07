@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  --font-inter: "Inter", sans-serif;
+  
+  /* Default / Masters Theme */
+  --background: #0a1f13; /* Deep Augusta green */
+  --foreground: #f4fdf0;
+  --primary: #f6e05e; /* Bright yellow */
+  --primary-foreground: #1a202c;
+  --accent: #ffffff;
+  --accent-foreground: #022c22;
+  --card: #0e2a1b;
+  --card-foreground: #edf2f7;
+  --border: #133a25;
+}
+
+[data-theme="masters"] {
+  --background: #0a1f13;
+  --foreground: #f4fdf0;
+  --primary: #f6e05e;
+  --primary-foreground: #1a202c;
+  --accent: #ffffff;
+  --accent-foreground: #022c22;
+  --card: #0e2a1b;
+  --card-foreground: #edf2f7;
+  --border: #133a25;
+}
+
+[data-theme="open"] {
+  --background: #0a192f;
+  --foreground: #e6f1ff;
+  --primary: #d4af37;
+  --primary-foreground: #0a192f;
+  --accent: #c0c0c0;
+  --accent-foreground: #020c1b;
+  --card: #112240;
+  --card-foreground: #ccd6f6;
+  --border: #233554;
+}
+
+[data-theme="usopen"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #dc2626;
+  --primary-foreground: #ffffff;
+  --accent: #1e3a8a;
+  --accent-foreground: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #cbd5e1;
+}
+
+[data-theme="pga"] {
+  --background: #07172E;
+  --foreground: #F8FAFC;
+  --primary: #D3A748;
+  --primary-foreground: #07172E;
+  --accent: #1E3A8A;
+  --accent-foreground: #F8FAFC;
+  --card: #0F2A4A;
+  --card-foreground: #E2E8F0;
+  --border: #1E3A8A;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="usopen"] .glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
