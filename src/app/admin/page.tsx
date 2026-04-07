@@ -130,18 +130,29 @@ export default function AdminPage() {
         </section>
 
         {/* Database Config */}
-        <section className="glass-panel p-6 rounded-2xl border border-[var(--border)] opacity-60">
+        <section className="glass-panel p-6 rounded-2xl border border-[var(--border)]">
           <h2 className="text-xl font-bold mb-4 border-b border-[var(--border)] pb-4">Google Sheet Syncer</h2>
           <div className="space-y-4">
             <div>
               <label className="text-xs uppercase tracking-widest opacity-50 block mb-1">Sheet ID</label>
-              <input disabled type="text" value="1A2B3C4D5E... (env.local)" className="w-full bg-black/20 border border-[var(--border)] rounded p-2 text-sm" />
+              <input type="text" readOnly placeholder="Managed via .env.local" className="w-full bg-black/20 border border-[var(--border)] rounded p-2 text-sm" />
             </div>
             <div>
               <label className="text-xs uppercase tracking-widest opacity-50 block mb-1">Force Sync Tiers</label>
-              <button disabled className="px-4 py-2 border border-[var(--border)] bg-black/20 rounded text-sm w-full font-medium mb-4">Pull Tiers Tab</button>
+              <button 
+                onClick={async () => {
+                  try {
+                    await fetch(`/api/sweepers?tournament=${theme}`);
+                    alert("Sheet Data Pulled Successfully.");
+                  } catch(e: any) {
+                    alert("Backend sync failed. Check server console.");
+                  }
+                }}
+                className="px-4 py-2 border border-[var(--border)] bg-black/20 hover:bg-[var(--primary)] hover:text-[var(--primary-foreground)] transition-colors rounded text-sm w-full font-bold mb-4"
+              >
+                Pull Tiers Tab
+              </button>
             </div>
-            <p className="text-xs text-[var(--primary)] mb-2">Only active in Production with valid Auth Keys.</p>
           </div>
         </section>
 
