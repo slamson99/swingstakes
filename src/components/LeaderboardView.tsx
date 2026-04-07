@@ -4,6 +4,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Search, ChevronUp, ChevronDown, User, Users } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { formatAESTShort } from "@/lib/time";
+import { Download } from "lucide-react";
 
 interface Golfer {
   id: string;
@@ -152,6 +154,13 @@ export function LeaderboardView() {
         }
       }
 
+      let displayThru = g.thru;
+      if (displayThru && displayThru.includes("T") && displayThru.endsWith("Z")) {
+        try {
+          displayThru = formatAESTShort(displayThru);
+        } catch(e) {}
+      }
+
       return { 
         ...g, 
         owner, 
@@ -159,6 +168,7 @@ export function LeaderboardView() {
         finalScoreVal, 
         finalScoreDisplay, 
         totalStrokes,
+        displayThru,
         r1Num, r2Num, r3Num, r4Num,
         posVal: parseNum(g.position.replace('T', '')) || 999 
       };
@@ -234,6 +244,20 @@ export function LeaderboardView() {
     return sortConfig.direction === "asc" ? <ChevronUp className="w-3 h-3 inline-block ml-1" /> : <ChevronDown className="w-3 h-3 inline-block ml-1" />;
   };
 
+  const handleDownloadCSV = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Golfer Name,Current Score\n"
+      + processedGolfers.map(g => `"${g.name}","${g.finalScoreDisplay}"`).join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `swingstakes_field_${theme}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
      return <div className="p-12 text-center animate-pulse text-xl">Loading Live Leaderboard...</div>;
   }
@@ -261,6 +285,13 @@ export function LeaderboardView() {
               <Users className="w-4 h-4" /> Teams
             </button>
           </div>
+
+          <button
+            onClick={handleDownloadCSV}
+            className="hidden md:flex items-center gap-2 px-4 py-2 bg-black/20 border border-[var(--border)] rounded-lg text-sm font-bold hover:bg-white/5 transition-colors"
+          >
+            <Download className="w-4 h-4" /> CSV
+          </button>
 
           {viewMode === "Individual" && (
             <div className="relative w-full md:w-48 hidden md:block">
@@ -323,7 +354,7 @@ export function LeaderboardView() {
                   <td className="p-4 text-center opacity-60">{safeRender(g.r2) || "-"}</td>
                   <td className="p-4 text-center opacity-60">{safeRender(g.r3) || "-"}</td>
                   <td className="p-4 text-center opacity-60">{safeRender(g.r4) || "-"}</td>
-                  <td className="p-4 text-center text-sm">{safeRender(g.thru) || "-"}</td>
+                  <td className="p-4 text-center text-sm font-medium opacity-80">{safeRender(g.displayThru) || "-"}</td>
                   <td className={`p-4 text-right font-bold text-lg ${g.finalScoreVal < 0 ? 'text-red-400' : ''}`}>
                     {g.isCut ? <span title="Missing Cut Logic: Score * 2">{safeRender(g.finalScoreDisplay)}*</span> : safeRender(g.finalScoreDisplay)}
                   </td>

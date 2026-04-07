@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useTheme } from "@/context/ThemeContext";
-import { Settings, Lock, ArrowLeft, Shuffle } from "lucide-react";
+import { Settings, Lock, ArrowLeft, Shuffle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { mockParticipants } from "@/lib/mock-data";
+import { forceRefresh } from "@/app/actions/revalidate";
 import { motion } from "framer-motion";
 
 export default function AdminPage() {
@@ -15,7 +16,7 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === "swings" || password === "admin") {
+    if (password === "5225") {
       setUnlocked(true);
     } else {
       alert("Incorrect password");
@@ -138,9 +139,32 @@ export default function AdminPage() {
             </div>
             <div>
               <label className="text-xs uppercase tracking-widest opacity-50 block mb-1">Force Sync Tiers</label>
-              <button disabled className="px-4 py-2 border border-[var(--border)] bg-black/20 rounded text-sm w-full font-medium">Pull Tiers Tab</button>
+              <button disabled className="px-4 py-2 border border-[var(--border)] bg-black/20 rounded text-sm w-full font-medium mb-4">Pull Tiers Tab</button>
             </div>
-            <p className="text-xs text-[var(--primary)]">Only active in Production with valid Auth Keys.</p>
+            <p className="text-xs text-[var(--primary)] mb-2">Only active in Production with valid Auth Keys.</p>
+          </div>
+        </section>
+
+        {/* Cache Busting */}
+        <section className="glass-panel p-6 rounded-2xl border border-[var(--border)] col-span-1 md:col-span-2">
+          <div className="flex justify-between items-center bg-black/20 p-6 rounded-xl border border-[var(--border)]">
+            <div>
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <RefreshCw className="text-[var(--primary)]" /> Force Data Refresh
+              </h2>
+              <p className="text-sm opacity-70 mt-1 max-w-lg">
+                Manually bust the Next.js API caching layer. This instantly tells the server to completely re-fetch the live ESPN payload and Sheets data without waiting for the automated 60s hook.
+              </p>
+            </div>
+            <button 
+              onClick={async () => {
+                await forceRefresh();
+                alert("Cache Revalidated Successfully! Live Leaderboard updated.");
+              }}
+              className="px-6 py-3 bg-[var(--primary)] text-[var(--primary-foreground)] font-bold rounded-lg hover:scale-[1.05] transition-all shadow-lg"
+            >
+              Flush Cache
+            </button>
           </div>
         </section>
       </div>
