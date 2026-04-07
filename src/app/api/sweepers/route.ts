@@ -3,6 +3,7 @@ import { getTournamentData, updatePaidStatus } from '@/lib/sheets';
 import { formatAEST } from '@/lib/time';
 
 export const dynamic = 'force-dynamic'; // Aggressive cache busting
+export const revalidate = 0;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { formatAEST } from '@/lib/time';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   const url = 'http://site.api.espn.com/apis/site/v2/sports/golf/leaderboard';
   
   try {
-    const res = await fetch(url, { next: { revalidate: 60 } }); // Cache 60s
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) {
       throw new Error('Failed to fetch from ESPN');
     }

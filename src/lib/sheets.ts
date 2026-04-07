@@ -13,24 +13,23 @@ let cachedDoc: GoogleSpreadsheet | null = null;
 export async function getGoogleSheet() {
   if (!SHEET_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
     console.warn("[Sheets Access] Environment Variables not populated natively.");
-    return null; 
+    throw new Error("Google Sheets Environment Variables Missing (SHEET_ID, CLIENT_EMAIL, PRIVATE_KEY).");
   }
 
-  try {
-    if (!cachedDoc) {
-      const jwt = new JWT({
-        email: CLIENT_EMAIL,
-        key: PRIVATE_KEY,
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-      });
-      cachedDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
+  if (!cachedDoc) {
+    const jwt = new JWT({
+      email: CLIENT_EMAIL,
+      key: PRIVATE_KEY,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+    cachedDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
+    try {
       await cachedDoc.loadInfo();
+    } catch (e: any) {
+      throw new Error("Google Sheets API Error loading doc info: " + e.message);
     }
-    return cachedDoc;
-  } catch (error: any) {
-    console.error("[Sheets FATAL ERROR] Failed to load Workbook info via Google API. Have you shared the sheet with the service account?", error.message);
-    return null;
   }
+  return cachedDoc;
 }
 
 export interface Sweeper {
@@ -55,54 +54,31 @@ function getTabName(context: string): string {
 export async function getTournamentData(context: string): Promise<Sweeper[]> {
   const doc = await getGoogleSheet();
   
-  if (!doc) {
-    // Fallback to mock data to prevent errors in development
-    console.warn("[Sheets API] No Auth Context provided in environment! Falling back to simulated mock draft data...");
-    return mockParticipants.map(mp => {
-      const draft = mockDraft.find(d => d.participantId === mp.id);
-      return {
-        id: mp.id,
-        name: mp.name,
-        tier1: draft?.golfers[0] || "",
-        tier2: draft?.golfers[1] || "",
-        tier3: draft?.golfers[2] || "",
-        tier4: draft?.golfers[3] || "",
-        paid: mp.paid
-      };
-    });
+  const sheetTitle = getTabName(context).trim();
+  console.log(`[Sheets API] Attempting to connect to Google Sheets workbook with exact Tab mapping: "${sheetTitle}"`);
+  
+  const sheet = doc.sheetsByTitle[sheetTitle];
+  if (!sheet) {
+    throw new Error(`Google Sheets API Error: Tab "${sheetTitle}" physically does not exist inside connected doc space!`);
   }
 
-  try {
-    const sheetTitle = getTabName(context).trim();
-    console.log(`[Sheets API] Attempting to connect to Google Sheets workbook with exact Tab mapping: "${sheetTitle}"`);
-    
-    const sheet = doc.sheetsByTitle[sheetTitle];
-    if (!sheet) {
-      console.error(`[Sheets API ERR] FATAL: Sheet tab "${sheetTitle}" physically does not exist inside connected doc space!`);
-      throw new Error(`Tab ${sheetTitle} not found`);
-    }
-
-    const rows = await sheet.getRows();
-    console.log(`[Sheets API] Execution Success! Extracted exactly ${rows.length} rows directly from "${sheetTitle}" tab.`);
-    
-    return rows.map(row => {
-      const data = row.toObject();
-      // Expecting columns: Sweeper No, Sweeper Name, Tier 1, Tier 2, Tier 3, Tier 4, Paid
-      return {
-        id: data['Sweeper No'] || '',
-        name: data['Sweeper Name'] || '',
-        tier1: data['Tier 1'] || '',
-        tier2: data['Tier 2'] || '',
-        tier3: data['Tier 3'] || '',
-        tier4: data['Tier 4'] || '',
-        // Map common true/false/checkbox strings to boolean
-        paid: String(data['Paid']).toLowerCase() === 'true' || data['Paid'] === 'TRUE'
-      };
-    });
-  } catch (error: any) {
-    console.error("[Sheets API ERR] Crash triggered during data ingestion string mapping:", error.message, error.stack);
-    return [];
-  }
+  const rows = await sheet.getRows();
+  console.log(`[Sheets API] Execution Success! Extracted exactly ${rows.length} rows directly from "${sheetTitle}" tab.`);
+  
+  return rows.map(row => {
+    const data = row.toObject();
+    // Expecting columns: Sweeper No, Sweeper Name, Tier 1, Tier 2, Tier 3, Tier 4, Paid
+    return {
+      id: data['Sweeper No'] || '',
+      name: data['Sweeper Name'] || '',
+      tier1: data['Tier 1'] || '',
+      tier2: data['Tier 2'] || '',
+      tier3: data['Tier 3'] || '',
+      tier4: data['Tier 4'] || '',
+      // Map common true/false/checkbox strings to boolean
+      paid: String(data['Paid']).toLowerCase() === 'true' || data['Paid'] === 'TRUE'
+    };
+  });
 }
 
 export async function updatePaidStatus(context: string, sweeperId: string, isPaid: boolean, passcode: string) {
