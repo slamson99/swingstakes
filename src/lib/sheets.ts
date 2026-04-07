@@ -12,19 +12,25 @@ let cachedDoc: GoogleSpreadsheet | null = null;
 
 export async function getGoogleSheet() {
   if (!SHEET_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
+    console.warn("[Sheets Access] Environment Variables not populated natively.");
     return null; 
   }
 
-  if (!cachedDoc) {
-    const jwt = new JWT({
-      email: CLIENT_EMAIL,
-      key: PRIVATE_KEY,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-    cachedDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
-    await cachedDoc.loadInfo();
+  try {
+    if (!cachedDoc) {
+      const jwt = new JWT({
+        email: CLIENT_EMAIL,
+        key: PRIVATE_KEY,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      });
+      cachedDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
+      await cachedDoc.loadInfo();
+    }
+    return cachedDoc;
+  } catch (error: any) {
+    console.error("[Sheets FATAL ERROR] Failed to load Workbook info via Google API. Have you shared the sheet with the service account?", error.message);
+    return null;
   }
-  return cachedDoc;
 }
 
 export interface Sweeper {
