@@ -99,19 +99,21 @@ export function LeaderboardView() {
   };
 
   const getOwnerInfo = (golferName: string) => {
+    const cleanGolfer = golferName.trim().toLowerCase();
+    
     const sweeper = sweepers.find(s => 
-      s.tier1.toLowerCase() === golferName.toLowerCase() ||
-      s.tier2.toLowerCase() === golferName.toLowerCase() ||
-      s.tier3.toLowerCase() === golferName.toLowerCase() ||
-      s.tier4.toLowerCase() === golferName.toLowerCase()
+      s.tier1.trim().toLowerCase() === cleanGolfer ||
+      s.tier2.trim().toLowerCase() === cleanGolfer ||
+      s.tier3.trim().toLowerCase() === cleanGolfer ||
+      s.tier4.trim().toLowerCase() === cleanGolfer
     );
 
     if (sweeper) {
       let tier = "";
-      if (sweeper.tier1.toLowerCase() === golferName.toLowerCase()) tier = "T1";
-      if (sweeper.tier2.toLowerCase() === golferName.toLowerCase()) tier = "T2";
-      if (sweeper.tier3.toLowerCase() === golferName.toLowerCase()) tier = "T3";
-      if (sweeper.tier4.toLowerCase() === golferName.toLowerCase()) tier = "T4";
+      if (sweeper.tier1.trim().toLowerCase() === cleanGolfer) tier = "T1";
+      if (sweeper.tier2.trim().toLowerCase() === cleanGolfer) tier = "T2";
+      if (sweeper.tier3.trim().toLowerCase() === cleanGolfer) tier = "T3";
+      if (sweeper.tier4.trim().toLowerCase() === cleanGolfer) tier = "T4";
       return { owner: sweeper.name, tier };
     }
     return { owner: "Unowned", tier: "" };
@@ -198,12 +200,12 @@ export function LeaderboardView() {
     if (viewMode !== "Teams") return [];
 
     const teams = sweepers.map(sweeper => {
-      // Find the 4 golfers for this sweeper
+      // Find the 4 golfers for this sweeper using .trim()
       const teamMates = [
-        golfers.find(g => g.name.toLowerCase() === sweeper.tier1.toLowerCase()),
-        golfers.find(g => g.name.toLowerCase() === sweeper.tier2.toLowerCase()),
-        golfers.find(g => g.name.toLowerCase() === sweeper.tier3.toLowerCase()),
-        golfers.find(g => g.name.toLowerCase() === sweeper.tier4.toLowerCase()),
+        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier1.trim().toLowerCase()),
+        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier2.trim().toLowerCase()),
+        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier3.trim().toLowerCase()),
+        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier4.trim().toLowerCase()),
       ];
 
       let teamAggregatePar = 0;
@@ -245,17 +247,20 @@ export function LeaderboardView() {
   };
 
   const handleDownloadCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + "Golfer Name,Current Score\n"
+    const csvContent = "Golfer Name,Current Score\n"
       + processedGolfers.map(g => `"${g.name}","${g.finalScoreDisplay}"`).join("\n");
       
-    const encodedUri = encodeURI(csvContent);
+    // Excel requires BOM (\uFEFF) for UTF-8 decoding of European accent marks
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const encodedUri = URL.createObjectURL(blob);
+    
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `swingstakes_field_${theme}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(encodedUri);
   };
 
   if (loading) {
@@ -304,8 +309,8 @@ export function LeaderboardView() {
                   onChange={e => setSearchOwner(e.target.value)}
                 >
                   <option value="All">All Golfers</option>
-                  {sweepers.map(p => (
-                    <option key={p.id} value={p.name}>{p.name}</option>
+                  {sweepers.length > 0 && Array.from(new Set(sweepers.map(s => s.name.trim()))).filter(Boolean).sort().map(ownerName => (
+                    <option key={ownerName} value={ownerName}>{ownerName}</option>
                   ))}
                   <option value="Unowned">Unowned Field</option>
                 </select>
