@@ -15,7 +15,7 @@
     "google-auth-library": "^10.6.2",
     "google-spreadsheet": "^4.1.1",
     "lucide-react": "^0.470.0",
-    "next": "15.2.0-canary.63",
+    "next": "^16.2.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.2.0"
