@@ -1,61 +1,116 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
+import { mockParticipants, mockDraft } from './mock-data';
 
-// We fall back to mock data if no credentials so the app doesn't crash during preview/development
 const SHEET_ID = process.env.GOOGLE_SHEET_ID || '';
 const CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
 const PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY 
   ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') 
   : '';
 
+let cachedDoc: GoogleSpreadsheet | null = null;
+
 export async function getGoogleSheet() {
   if (!SHEET_ID || !CLIENT_EMAIL || !PRIVATE_KEY) {
     return null; 
   }
 
-  const jwt = new JWT({
-    email: CLIENT_EMAIL,
-    key: PRIVATE_KEY,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-  });
-
-  const doc = new GoogleSpreadsheet(SHEET_ID, jwt);
-  await doc.loadInfo();
-  return doc;
+  if (!cachedDoc) {
+    const jwt = new JWT({
+      email: CLIENT_EMAIL,
+      key: PRIVATE_KEY,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+    cachedDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
+    await cachedDoc.loadInfo();
+  }
+  return cachedDoc;
 }
 
-export const mockParticipants = [
-  { id: "1", name: "David", paid: true },
-  { id: "2", name: "Aidan", paid: false },
-  { id: "3", name: "Brad", paid: true },
-  { id: "4", name: "Matty V", paid: true },
-  { id: "5", name: "Mark", paid: true },
-  { id: "6", name: "Steve", paid: true },
-  { id: "7", name: "Jonti", paid: false },
-  { id: "8", name: "Gaz", paid: true },
-  { id: "9", name: "Bobby", paid: false },
-  { id: "10", name: "Rowan", paid: false },
-];
+export interface Sweeper {
+  id: string; // Sweeper No
+  name: string;
+  tier1: string;
+  tier2: string;
+  tier3: string;
+  tier4: string;
+  paid: boolean;
+}
 
-export const mockDraft = [
-  {
-    participantId: "1",
-    golfers: ["Scottie Scheffler", "Xander Schauffele", "Sahith Theegala", "Max Homa"]
-  },
-  {
-    participantId: "2",
-    golfers: ["Rory McIlroy", "Ludvig Aberg", "Tommy Fleetwood", "Jason Day"]
-  },
-  // etc...
-];
+// Derive tab name dynamically
+function getTabName(context: string): string {
+  if (context === "masters") return "Masters 2026";
+  if (context === "usopen") return "US Open 2026";
+  if (context === "pga") return "PGA Championship 2026";
+  if (context === "open") return "The Open 2026";
+  return "Masters 2026"; 
+}
 
-export const mockHallOfFame = [
-  { year: "2024", major: "Masters", indiWinner: "David (Scottie)", indiRunner: "Sellers", teamWinner: "Aidan", noteable: "nikki Webster" },
-  { year: "2024", major: "PGA", indiWinner: "David No Parrs (Xander)", indiRunner: "Brad (Rosey/Bryson)", teamWinner: "Rose", noteable: "Beginner Luck Matty V" },
-  { year: "2024", major: "US Open", indiWinner: "Mark's bombing Bryson", indiRunner: "Sad Steve", teamWinner: "Mad Mcilroy", noteable: "Not Beginner Luck Matty V" },
-  { year: "2024", major: "British Open", indiWinner: "Jonti (xander)", indiRunner: "knackers", teamWinner: "Gimme the Matty Money", noteable: "Marky Mark the Millionaire" },
-  { year: "2025", major: "Masters", indiWinner: "Steve & Rory Romance", indiRunner: "Steve's Rosey Romance", teamWinner: "Sellers Squad", noteable: "Aidan's +47 Team score" },
-  { year: "2025", major: "PGA", indiWinner: "Aidos crim-scottie show", indiRunner: "David No-Parrs", teamWinner: "Money Matt 3 time teams champ", noteable: "Brad +50 raise the bat" },
-  { year: "2025", major: "US Open", indiWinner: "Gaz", indiRunner: "Spaun Spilkin", teamWinner: "Bobby Baron", noteable: "Rowan 'how did i get here'" },
-  { year: "2025", major: "British Open", indiWinner: "+91 Team Mark", indiRunner: "", teamWinner: "", noteable: "" },
-];
+export async function getTournamentData(context: string): Promise<Sweeper[]> {
+  const doc = await getGoogleSheet();
+  
+  if (!doc) {
+    // Fallback to mock data to prevent errors in development
+    return mockParticipants.map(mp => {
+      const draft = mockDraft.find(d => d.participantId === mp.id);
+      return {
+        id: mp.id,
+        name: mp.name,
+        tier1: draft?.golfers[0] || "",
+        tier2: draft?.golfers[1] || "",
+        tier3: draft?.golfers[2] || "",
+        tier4: draft?.golfers[3] || "",
+        paid: mp.paid
+      };
+    });
+  }
+
+  try {
+    const sheetTitle = getTabName(context);
+    const sheet = doc.sheetsByTitle[sheetTitle];
+    if (!sheet) throw new Error(`Tab ${sheetTitle} not found`);
+
+    const rows = await sheet.getRows();
+    return rows.map(row => {
+      const data = row.toObject();
+      // Expecting columns: Sweeper No, Sweeper Name, Tier 1, Tier 2, Tier 3, Tier 4, Paid
+      return {
+        id: data['Sweeper No'] || '',
+        name: data['Sweeper Name'] || '',
+        tier1: data['Tier 1'] || '',
+        tier2: data['Tier 2'] || '',
+        tier3: data['Tier 3'] || '',
+        tier4: data['Tier 4'] || '',
+        // Map common true/false/checkbox strings to boolean
+        paid: String(data['Paid']).toLowerCase() === 'true' || data['Paid'] === 'TRUE'
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching tournament data from sheets:", error);
+    return [];
+  }
+}
+
+export async function updatePaidStatus(context: string, sweeperId: string, isPaid: boolean, passcode: string) {
+  if (passcode !== "5225") throw new Error("Unauthorized");
+
+  const doc = await getGoogleSheet();
+  if (!doc) {
+    throw new Error("Google Sheets not explicitly connected in Environment. Viewers only.");
+  }
+
+  const sheetTitle = getTabName(context);
+  const sheet = doc.sheetsByTitle[sheetTitle];
+  if (!sheet) throw new Error(`Tab ${sheetTitle} not found`);
+
+  const rows = await sheet.getRows();
+  const rowToUpdate = rows.find(r => r.get('Sweeper No') === sweeperId);
+  
+  if (rowToUpdate) {
+    rowToUpdate.set('Paid', isPaid ? 'TRUE' : 'FALSE');
+    await rowToUpdate.save();
+    return { success: true };
+  } else {
+    throw new Error("Sweeper not found in spreadsheet");
+  }
+}

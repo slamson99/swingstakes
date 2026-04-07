@@ -1,26 +1,82 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { mockParticipants } from "@/lib/mock-data";
-import { CheckCircle2, Circle, DollarSign, Users, Award, Target } from "lucide-react";
+import { CheckCircle2, Circle, DollarSign, Users, Award, Target, Lock, Unlock } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
+
+interface Sweeper {
+  id: string;
+  name: string;
+  paid: boolean;
+}
 
 export function PayoutsView() {
-  const [participants, setParticipants] = useState(mockParticipants);
+  const { theme } = useTheme();
+  const [participants, setParticipants] = useState<Sweeper[]>([]);
   const [hioHit, setHioHit] = useState(false);
+  const [passcode, setPasscode] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const togglePaid = (id: string) => {
-    setParticipants(p => p.map(x => x.id === id ? { ...x, paid: !x.paid } : x));
+  useEffect(() => {
+    async function getSweepers() {
+      try {
+        const res = await fetch(`/api/sweepers?tournament=${theme}`);
+        const data = await res.json();
+        if (data.sweepers) setParticipants(data.sweepers);
+      } catch (err) {
+        console.error("Failed to load sweepers", err);
+      }
+    }
+    getSweepers();
+  }, [theme]);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passcode === "5225") {
+      setIsAdmin(true);
+    } else {
+      alert("Invalid Admin Passcode");
+    }
   };
 
-  const totalPot = participants.length * 50; // assuming $50 entry
+  const togglePaid = async (id: string, currentStatus: boolean) => {
+    if (!isAdmin) return;
+    setIsUpdating(true);
+    try {
+      const res = await fetch("/api/sweepers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          context: theme,
+          sweeperId: id,
+          isPaid: !currentStatus,
+          passcode: "5225"
+        })
+      });
+      
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || "Update failed");
+      }
+      
+      // Update local state if success
+      setParticipants(p => p.map(x => x.id === id ? { ...x, paid: !x.paid } : x));
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const totalPot = participants.length * 50; 
   const baseWinner = 500;
   const runnerUp = 250;
   const teamTotal = 200;
   const hioPrize = 50;
 
   const actualWinnerPrize = hioHit ? baseWinner : baseWinner + hioPrize;
-
   const paidCount = participants.filter(p => p.paid).length;
   const totalCollected = paidCount * 50;
 
@@ -29,12 +85,34 @@ export function PayoutsView() {
       <div className="flex flex-col md:flex-row gap-8">
         
         {/* Payments Tracker */}
-        <div className="flex-1 glass-panel p-6 rounded-2xl border border-[var(--border)]">
-          <h3 className="text-xl font-bold mb-1 flex items-center gap-2">
-            <DollarSign className="text-[var(--primary)]" />
-            Entry Fee Tracking
-          </h3>
-          <p className="text-sm opacity-60 mb-6">Track who has paid their $50 entry fee.</p>
+        <div className="flex-1 glass-panel p-6 rounded-2xl border border-[var(--border)] relative overflow-hidden">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h3 className="text-xl font-bold mb-1 flex items-center gap-2">
+                <DollarSign className="text-[var(--primary)]" />
+                Entry Fee Tracking
+              </h3>
+              <p className="text-sm opacity-60">Track who has paid their $50 entry fee.</p>
+            </div>
+            {!isAdmin ? (
+              <form onSubmit={handleAdminLogin} className="flex gap-2">
+                <input 
+                  type="password" 
+                  placeholder="Passcode" 
+                  value={passcode}
+                  onChange={e => setPasscode(e.target.value)}
+                  className="w-24 px-3 py-1 rounded bg-black/20 border border-[var(--border)] text-sm focus:outline-none focus:border-[var(--primary)]"
+                />
+                <button type="submit" className="p-1.5 bg-black/40 rounded hover:bg-black/60 transition-colors">
+                  <Lock className="w-4 h-4 opacity-50" />
+                </button>
+              </form>
+            ) : (
+              <div className="flex items-center gap-2 text-[var(--primary)] text-sm font-bold bg-[var(--primary)]/10 px-3 py-1 rounded-full">
+                <Unlock className="w-4 h-4" /> Admin Access
+              </div>
+            )}
+          </div>
 
           <div className="mb-6 bg-black/20 p-4 rounded-xl border border-[var(--border)]">
             <div className="flex justify-between items-center text-sm mb-2">
@@ -44,22 +122,27 @@ export function PayoutsView() {
             <div className="h-2 bg-black/40 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-[var(--primary)] transition-all duration-500" 
-                style={{ width: `${(paidCount / participants.length) * 100}%` }}
+                style={{ width: `${(paidCount / Math.max(1, participants.length)) * 100}%` }}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 ${isUpdating ? "opacity-50 pointer-events-none" : ""}`}>
             {participants.map(p => (
               <button 
                 key={p.id}
-                onClick={() => togglePaid(p.id)}
-                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${p.paid ? "bg-[var(--primary)]/10 border-[var(--primary)]/50" : "bg-black/20 border-[var(--border)] hover:bg-white/5"}`}
+                onClick={() => togglePaid(p.id, p.paid)}
+                disabled={!isAdmin}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all 
+                  ${p.paid ? "bg-[var(--primary)]/10 border-[var(--primary)]/50" : "bg-black/20 border-[var(--border)]"} 
+                  ${isAdmin ? "hover:bg-white/5 cursor-pointer" : "cursor-default"}`
+                }
               >
                 <span className={`font-medium ${p.paid ? "" : "opacity-70"}`}>{p.name}</span>
                 {p.paid ? <CheckCircle2 className="text-[var(--primary)] w-5 h-5" /> : <Circle className="opacity-30 w-5 h-5" />}
               </button>
             ))}
+            {participants.length === 0 && <div className="col-span-2 text-center opacity-50 p-4">Loading Participants...</div>}
           </div>
         </div>
 

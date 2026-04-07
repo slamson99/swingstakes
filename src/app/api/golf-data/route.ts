@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { formatAEST } from '@/lib/time';
 
 export async function GET() {
   const url = 'http://site.api.espn.com/apis/site/v2/sports/golf/leaderboard';
@@ -54,6 +55,7 @@ export async function GET() {
     return NextResponse.json({
       tournamentName,
       leaderboard,
+      lastSynced: formatAEST(new Date()),
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
