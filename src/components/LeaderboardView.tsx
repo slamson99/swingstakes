@@ -43,11 +43,25 @@ export function LeaderboardView() {
     fetchData();
   }, []);
 
-  const calculateScoreValue = (scoreStr: string) => {
-    if (!scoreStr || scoreStr === "E") return 0;
-    if (scoreStr.startsWith("+")) return parseInt(scoreStr.replace("+", ""));
-    if (scoreStr.startsWith("-")) return parseInt(scoreStr);
-    return 0; // fallback if it's "CUT" from espn, but we use the isCut flag
+  const safeRender = (val: any): string | number => {
+    if (val == null) return "-";
+    if (typeof val === "object") {
+      return val.displayValue || val.value || val.displayName || val.name || JSON.stringify(val);
+    }
+    return val;
+  };
+
+  const calculateScoreValue = (rawScore: any) => {
+    if (rawScore == null) return 0;
+    const scoreStr = String(rawScore).trim(); // Coerce to string safely
+    if (scoreStr === "" || scoreStr === "E") return 0;
+    
+    if (scoreStr.startsWith("+")) return parseInt(scoreStr.replace("+", ""), 10) || 0;
+    if (scoreStr.startsWith("-")) return parseInt(scoreStr, 10) || 0;
+    
+    // Fallback if score was a raw number originally, or formatted differently 
+    const parsed = parseInt(scoreStr, 10);
+    return isNaN(parsed) ? 0 : parsed;
   };
 
   const getOwnerName = (golferName: string) => {
@@ -142,22 +156,22 @@ export function LeaderboardView() {
                 key={g.id} 
                 className={`hover:bg-white/5 transition-colors ${g.isCut ? "opacity-50" : ""}`}
               >
-                <td className="p-4 text-center font-bold">{g.position}</td>
+                <td className="p-4 text-center font-bold">{safeRender(g.position)}</td>
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <img src={g.flag} alt="flag" className="w-6 h-4 object-cover border border-black/20" onError={(e) => e.currentTarget.style.display = 'none'} />
-                    <span className="font-semibold">{g.name}</span>
+                    <span className="font-semibold">{safeRender(g.name)}</span>
                     {g.isCut && <span className="text-[10px] bg-red-900/50 text-red-200 uppercase px-2 py-0.5 rounded-full font-bold ml-2">CUT</span>}
                   </div>
                 </td>
-                <td className="p-4 hidden md:table-cell font-medium opacity-80">{g.owner}</td>
-                <td className="p-4 text-center opacity-60">{g.r1 || "-"}</td>
-                <td className="p-4 text-center opacity-60">{g.r2 || "-"}</td>
-                <td className="p-4 text-center opacity-60">{g.r3 || "-"}</td>
-                <td className="p-4 text-center opacity-60">{g.r4 || "-"}</td>
-                <td className="p-4 text-center text-sm">{g.thru || "-"}</td>
+                <td className="p-4 hidden md:table-cell font-medium opacity-80">{safeRender(g.owner)}</td>
+                <td className="p-4 text-center opacity-60">{safeRender(g.r1) || "-"}</td>
+                <td className="p-4 text-center opacity-60">{safeRender(g.r2) || "-"}</td>
+                <td className="p-4 text-center opacity-60">{safeRender(g.r3) || "-"}</td>
+                <td className="p-4 text-center opacity-60">{safeRender(g.r4) || "-"}</td>
+                <td className="p-4 text-center text-sm">{safeRender(g.thru) || "-"}</td>
                 <td className={`p-4 text-right font-bold text-lg ${g.finalScoreVal < 0 ? 'text-red-400' : ''}`}>
-                  {g.isCut ? <span title="Missing Cut Logic: (R1+R2)*2">{g.finalScoreDisplay}*</span> : g.finalScoreDisplay}
+                  {g.isCut ? <span title="Missing Cut Logic: (R1+R2)*2">{safeRender(g.finalScoreDisplay)}*</span> : safeRender(g.finalScoreDisplay)}
                 </td>
               </motion.tr>
             ))}
