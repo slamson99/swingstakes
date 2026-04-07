@@ -65,18 +65,26 @@ export async function getTournamentData(context: string): Promise<Sweeper[]> {
   const rows = await sheet.getRows();
   console.log(`[Sheets API] Execution Success! Extracted exactly ${rows.length} rows directly from "${sheetTitle}" tab.`);
   
-  return rows.map(row => {
+  return rows.map((row, index) => {
     const data = row.toObject();
-    // Expecting columns: Sweeper No, Sweeper Name, Tier 1, Tier 2, Tier 3, Tier 4, Paid
+    if (index === 0) {
+      console.log("Raw Row Data (Row 1):", data);
+    }
+    
+    // Lenient extraction to defeat invisible whitespaces or case sensitivity bugs
+    const lenientGet = (searchStr: string) => {
+      const matchKey = Object.keys(data).find(k => k.trim().toLowerCase() === searchStr.trim().toLowerCase());
+      return matchKey ? data[matchKey] : '';
+    };
+
     return {
-      id: data['Sweeper No'] || '',
-      name: data['Sweeper Name'] || '',
-      tier1: data['Tier 1'] || '',
-      tier2: data['Tier 2'] || '',
-      tier3: data['Tier 3'] || '',
-      tier4: data['Tier 4'] || '',
-      // Map common true/false/checkbox strings to boolean
-      paid: String(data['Paid']).toLowerCase() === 'true' || data['Paid'] === 'TRUE'
+      id: lenientGet('Sweeper No'),
+      name: lenientGet('Sweeper Name'),
+      tier1: lenientGet('Tier 1'),
+      tier2: lenientGet('Tier 2'),
+      tier3: lenientGet('Tier 3'),
+      tier4: lenientGet('Tier 4'),
+      paid: String(lenientGet('Paid')).toLowerCase() === 'true' || lenientGet('Paid') === 'TRUE'
     };
   });
 }
