@@ -56,8 +56,8 @@ export function LeaderboardView() {
       try {
         setLoading(true);
         const [espnRes, sweepersRes] = await Promise.all([
-          fetch("/api/golf-data"),
-          fetch(`/api/sweepers?tournament=${theme}`)
+          fetch("/api/golf-data", { cache: "no-store" }),
+          fetch(`/api/sweepers?tournament=${theme}`, { cache: "no-store" })
         ]);
         
         const espnData = await espnRes.json();

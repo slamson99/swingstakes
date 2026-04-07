@@ -51,6 +51,7 @@ export async function getTournamentData(context: string): Promise<Sweeper[]> {
   
   if (!doc) {
     // Fallback to mock data to prevent errors in development
+    console.warn("[Sheets API] No Auth Context provided in environment! Falling back to simulated mock draft data...");
     return mockParticipants.map(mp => {
       const draft = mockDraft.find(d => d.participantId === mp.id);
       return {
@@ -66,11 +67,18 @@ export async function getTournamentData(context: string): Promise<Sweeper[]> {
   }
 
   try {
-    const sheetTitle = getTabName(context);
+    const sheetTitle = getTabName(context).trim();
+    console.log(`[Sheets API] Attempting to connect to Google Sheets workbook with exact Tab mapping: "${sheetTitle}"`);
+    
     const sheet = doc.sheetsByTitle[sheetTitle];
-    if (!sheet) throw new Error(`Tab ${sheetTitle} not found`);
+    if (!sheet) {
+      console.error(`[Sheets API ERR] FATAL: Sheet tab "${sheetTitle}" physically does not exist inside connected doc space!`);
+      throw new Error(`Tab ${sheetTitle} not found`);
+    }
 
     const rows = await sheet.getRows();
+    console.log(`[Sheets API] Execution Success! Extracted exactly ${rows.length} rows directly from "${sheetTitle}" tab.`);
+    
     return rows.map(row => {
       const data = row.toObject();
       // Expecting columns: Sweeper No, Sweeper Name, Tier 1, Tier 2, Tier 3, Tier 4, Paid
@@ -85,8 +93,8 @@ export async function getTournamentData(context: string): Promise<Sweeper[]> {
         paid: String(data['Paid']).toLowerCase() === 'true' || data['Paid'] === 'TRUE'
       };
     });
-  } catch (error) {
-    console.error("Error fetching tournament data from sheets:", error);
+  } catch (error: any) {
+    console.error("[Sheets API ERR] Crash triggered during data ingestion string mapping:", error.message, error.stack);
     return [];
   }
 }

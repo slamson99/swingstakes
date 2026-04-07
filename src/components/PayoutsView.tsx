@@ -22,7 +22,7 @@ export function PayoutsView() {
   useEffect(() => {
     async function getSweepers() {
       try {
-        const res = await fetch(`/api/sweepers?tournament=${theme}`);
+        const res = await fetch(`/api/sweepers?tournament=${theme}`, { cache: "no-store" });
         const data = await res.json();
         if (data.sweepers) setParticipants(data.sweepers);
       } catch (err) {

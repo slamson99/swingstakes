@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import { getTournamentData, updatePaidStatus } from '@/lib/sheets';
 import { formatAEST } from '@/lib/time';
 
+export const dynamic = 'force-dynamic'; // Aggressive cache busting
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const context = searchParams.get('tournament') || 'masters';
   
+  console.log(`[API /sweepers] Fetching GET request with tournament context: ${context}`);
   const sweepers = await getTournamentData(context);
+  console.log(`[API /sweepers] Returning ${sweepers.length} sweepers array length back to client.`);
   
   return NextResponse.json({
     sweepers,
