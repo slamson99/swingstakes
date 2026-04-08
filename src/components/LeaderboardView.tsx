@@ -166,22 +166,27 @@ export function LeaderboardView() {
       
       if (isFinal || tId === "3" || g.statusObj?.type?.name === "STATUS_FINAL") {
         displayThru = "F";
-      } else if (tState === "in" || tId === "2" || g.statusObj?.period > 0) {
-        // Active on course
+      } else if (tState === "in") {
         if (g.statusObj?.hole) {
           displayThru = `Hole ${g.statusObj.hole}`;
         } else if (displayThru && !displayThru.toLowerCase().includes("hole")) {
            const match = displayThru.match(/\d+/);
            if (match) displayThru = `Hole ${match[0]}`;
         }
-      } else if (displayThru && displayThru.includes("T") && displayThru.endsWith("Z")) {
-        try {
-          displayThru = formatAESTShort(displayThru);
-        } catch(e) {}
+      } else if (tState === "pre") {
+        const teeTimeStr = g.statusObj?.teeTime || displayThru;
+        if (teeTimeStr && teeTimeStr.includes("T") && teeTimeStr.endsWith("Z")) {
+          try {
+            displayThru = formatAESTShort(teeTimeStr);
+          } catch(e) {
+            displayThru = teeTimeStr;
+          }
+        } else {
+          displayThru = teeTimeStr;
+        }
       }
 
-      const displayThruSafe = safeRender(displayThru).toString().trim();
-      const isActive = /hole|\d+\*?$/i.test(displayThruSafe) && displayThruSafe !== "F" && !g.isCut;
+      const isActive = tState === "in" && !g.isCut && !isFinal;
 
       return { 
         ...g, 
@@ -372,17 +377,20 @@ export function LeaderboardView() {
                       </div>
                     </td>
                     <td className="p-3 md:p-4">
-                      <div className="flex items-center gap-2">
-                        <img src={g.flag} alt="flag" className="w-5 h-3 md:w-6 md:h-4 object-cover border border-black/20" onError={(e) => e.currentTarget.style.display = 'none'} />
-                        <span className="font-semibold">{safeRender(g.name)}</span>
-                        {g.tier && <span className="text-[9px] md:text-[10px] bg-[var(--primary)] text-[var(--primary-foreground)] px-1.5 rounded font-bold">{g.tier}</span>}
-                        {g.isActive && (
-                          <span className="relative flex w-1.5 h-1.5 md:w-2 md:h-2 ml-1" title="Currently Playing">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-green-500"></span>
-                          </span>
-                        )}
-                        {g.isCut && <span className="text-[9px] md:text-[10px] bg-red-900/80 text-red-100 uppercase px-1.5 py-0.5 rounded font-bold tracking-wider">CUT</span>}
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <img src={g.flag} alt="flag" className="w-5 h-3 md:w-6 md:h-4 object-cover border border-black/20" onError={(e) => e.currentTarget.style.display = 'none'} />
+                          <span className="font-semibold">{safeRender(g.name)}</span>
+                          {g.tier && <span className="text-[9px] md:text-[10px] bg-[var(--primary)] text-[var(--primary-foreground)] px-1.5 rounded font-bold">{g.tier}</span>}
+                          {g.isActive && (
+                            <span className="relative flex w-1.5 h-1.5 md:w-2 md:h-2 ml-1" title="Currently Playing">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-green-500"></span>
+                            </span>
+                          )}
+                          {g.isCut && <span className="text-[9px] md:text-[10px] bg-red-900/80 text-red-100 uppercase px-1.5 py-0.5 rounded font-bold tracking-wider">CUT</span>}
+                        </div>
+                        <span className="text-[10px] text-gray-400 opacity-80 block md:hidden">{safeRender(g.owner)}</span>
                       </div>
                     </td>
                     <td className="p-3 md:p-4 hidden md:table-cell font-medium opacity-80">{safeRender(g.owner)}</td>
@@ -410,21 +418,21 @@ export function LeaderboardView() {
                             transition={{ duration: 0.3 }}
                             className="p-4 md:p-6"
                           >
-                            <div className="flex flex-col md:flex-row gap-4 justify-between text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm w-full">
                               {g.linescores.map((ls, idx) => (
-                                <div key={idx} className="flex-1 bg-black/40 rounded-lg p-3 border border-white/5">
+                                <div key={idx} className="bg-black/40 rounded-lg p-3 border border-white/5 shadow-inner">
                                   <div className="text-xs uppercase tracking-wider opacity-60 mb-2 font-bold border-b border-white/10 pb-1">Round {ls.period}</div>
-                                  <div className="flex justify-between items-center mb-1">
+                                  <div className="flex justify-between items-center mb-1 text-gray-300">
                                     <span className="opacity-70">Front 9:</span>
-                                    <span className="font-mono">{ls.outScore || "-"}</span>
+                                    <span className="font-mono bg-black/30 px-2 rounded">{ls.outScore || "-"}</span>
                                   </div>
-                                  <div className="flex justify-between items-center mb-2">
+                                  <div className="flex justify-between items-center mb-2 text-gray-300">
                                     <span className="opacity-70">Back 9:</span>
-                                    <span className="font-mono">{ls.inScore || "-"}</span>
+                                    <span className="font-mono bg-black/30 px-2 rounded">{ls.inScore || "-"}</span>
                                   </div>
-                                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                                    <span className="font-bold opacity-90">Total:</span>
-                                    <span className="font-bold text-[var(--primary)] text-lg">{ls.value || "-"}</span>
+                                  <div className="flex justify-between items-center pt-2 border-t border-white/10 mt-2">
+                                    <span className="font-bold opacity-90 uppercase text-[10px] tracking-wider">Total</span>
+                                    <span className="font-black text-[var(--primary)] text-right">{ls.value || "-"}</span>
                                   </div>
                                 </div>
                               ))}
