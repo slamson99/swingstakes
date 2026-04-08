@@ -105,21 +105,21 @@ export function LeaderboardView() {
   };
 
   const getOwnerInfo = (golferName: string) => {
-    const cleanGolfer = golferName.trim().toLowerCase();
+    const cleanGolfer = (golferName || "").trim().toLowerCase();
     
     const sweeper = sweepers.find(s => 
-      s.tier1.trim().toLowerCase() === cleanGolfer ||
-      s.tier2.trim().toLowerCase() === cleanGolfer ||
-      s.tier3.trim().toLowerCase() === cleanGolfer ||
-      s.tier4.trim().toLowerCase() === cleanGolfer
+      (s.tier1 || "").trim().toLowerCase() === cleanGolfer ||
+      (s.tier2 || "").trim().toLowerCase() === cleanGolfer ||
+      (s.tier3 || "").trim().toLowerCase() === cleanGolfer ||
+      (s.tier4 || "").trim().toLowerCase() === cleanGolfer
     );
 
     if (sweeper) {
       let tier = "";
-      if (sweeper.tier1.trim().toLowerCase() === cleanGolfer) tier = "T1";
-      if (sweeper.tier2.trim().toLowerCase() === cleanGolfer) tier = "T2";
-      if (sweeper.tier3.trim().toLowerCase() === cleanGolfer) tier = "T3";
-      if (sweeper.tier4.trim().toLowerCase() === cleanGolfer) tier = "T4";
+      if ((sweeper.tier1 || "").trim().toLowerCase() === cleanGolfer) tier = "T1";
+      if ((sweeper.tier2 || "").trim().toLowerCase() === cleanGolfer) tier = "T2";
+      if ((sweeper.tier3 || "").trim().toLowerCase() === cleanGolfer) tier = "T3";
+      if ((sweeper.tier4 || "").trim().toLowerCase() === cleanGolfer) tier = "T4";
       return { owner: sweeper.name, tier };
     }
     return { owner: "Unowned", tier: "" };
@@ -206,12 +206,12 @@ export function LeaderboardView() {
     if (viewMode !== "Teams") return [];
 
     const teams = sweepers.map(sweeper => {
-      // Find the 4 golfers for this sweeper using .trim()
+      // Find the 4 golfers for this sweeper using safe .trim() string fallbacks
       const teamMates = [
-        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier1.trim().toLowerCase()),
-        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier2.trim().toLowerCase()),
-        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier3.trim().toLowerCase()),
-        golfers.find(g => g.name.trim().toLowerCase() === sweeper.tier4.trim().toLowerCase()),
+        golfers.find(g => (g.name || "").trim().toLowerCase() === (sweeper.tier1 || "").trim().toLowerCase()),
+        golfers.find(g => (g.name || "").trim().toLowerCase() === (sweeper.tier2 || "").trim().toLowerCase()),
+        golfers.find(g => (g.name || "").trim().toLowerCase() === (sweeper.tier3 || "").trim().toLowerCase()),
+        golfers.find(g => (g.name || "").trim().toLowerCase() === (sweeper.tier4 || "").trim().toLowerCase()),
       ];
 
       let teamAggregatePar = 0;
@@ -315,7 +315,7 @@ export function LeaderboardView() {
                   onChange={e => setSearchOwner(e.target.value)}
                 >
                   <option value="All">All Golfers</option>
-                  {sweepers.length > 0 && Array.from(new Set(sweepers.map(s => s.name.trim()))).filter(Boolean).sort().map(ownerName => (
+                  {sweepers.length > 0 && Array.from(new Set(sweepers.map(s => (s.name || "").trim()))).filter(Boolean).sort().map(ownerName => (
                     <option key={ownerName} value={ownerName}>{ownerName}</option>
                   ))}
                   <option value="Unowned">Unowned Field</option>

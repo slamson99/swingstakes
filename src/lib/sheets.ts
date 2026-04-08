@@ -80,7 +80,7 @@ export async function getTournamentData(context: string): Promise<Sweeper[]> {
     
     // Lenient extraction to defeat invisible whitespaces or case sensitivity bugs
     const lenientGet = (searchStr: string) => {
-      const matchKey = Object.keys(data).find(k => k.trim().toLowerCase() === searchStr.trim().toLowerCase());
+      const matchKey = Object.keys(data).find(k => (k || "").trim().toLowerCase() === (searchStr || "").trim().toLowerCase());
       return matchKey ? data[matchKey] : '';
     };
 
