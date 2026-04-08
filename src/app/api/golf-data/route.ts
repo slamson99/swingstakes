@@ -37,27 +37,41 @@ export async function GET() {
       const r2 = scores[1]?.value || 0;
       const r3 = scores[2]?.value || 0;
       const r4 = scores[3]?.value || 0;
+      // Calculate movement
+      const movement = c.movement || 0;
       
-      // Calculate missing cut logic for sweepstakes: (r1 + r2) * 2
-      // Actually we will do this on the frontend or backend. Better to pass raw scores to frontend.
-      
+      const fullLinescores = scores.map((s: any) => ({
+        period: s.period,
+        value: s.value,
+        inScore: s.inScore,
+        outScore: s.outScore,
+      }));
+
       return {
         id: athlete.id,
         name: athlete.displayName,
         headshot: athlete.headshot?.href || '',
         flag: athlete.flag?.href || '',
         position: c.status?.position?.displayName || "-",
+        movement,
         score: c.score || "E", // Total related to par
         r1, r2, r3, r4,
+        linescores: fullLinescores,
         isCut,
-        status: status.type?.description || "Active", // e.g. "Active", "Cut", "Finished"
-        thru: status.displayValue || "", // e.g. "F", "18", "12*"
+        status: status.type?.description || "Active",
+        statusObj: status, // Send the full status object for deeper contextual tracking (hole, play state, etc.)
+        thru: status.displayValue || "",
       };
     });
+
+    const eventStatus = event.status?.type?.id || "1";
+    const eventStatusName = event.status?.type?.name || "STATUS_SCHEDULED";
+    const isFinal = eventStatus === "3" || eventStatusName === "STATUS_FINAL";
 
     return NextResponse.json({
       tournamentName,
       leaderboard,
+      isFinal,
       lastSynced: formatAEST(new Date()),
     });
   } catch (err: any) {
