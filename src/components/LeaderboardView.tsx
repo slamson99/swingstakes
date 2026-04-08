@@ -221,7 +221,7 @@ export function LeaderboardView() {
         if (!g) return { name: sweeper[`tier${index + 1}` as keyof Sweeper] as string, score: "N/A", val: 0 };
         
         let val = calculateScoreValue(g.score);
-        let display = g.score;
+        let display = safeRender(g.score);
 
         if (g.isCut) {
           // Multiply relative-to-par score by 2
