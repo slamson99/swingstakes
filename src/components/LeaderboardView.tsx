@@ -169,6 +169,9 @@ export function LeaderboardView() {
         } catch(e) {}
       }
 
+      const displayThruSafe = safeRender(displayThru).toString().trim();
+      const isActive = /^\d+\*?$/.test(displayThruSafe);
+
       return { 
         ...g, 
         owner, 
@@ -177,6 +180,7 @@ export function LeaderboardView() {
         finalScoreDisplay, 
         totalStrokes,
         displayThru,
+        isActive,
         r1Num, r2Num, r3Num, r4Num,
         posVal: parseNum(g.position.replace('T', '')) || 999 
       };
@@ -216,22 +220,27 @@ export function LeaderboardView() {
 
       let teamAggregatePar = 0;
       let playersCounted = 0;
+      let hasCutPlayer = false;
       
       const details = teamMates.map((g, index) => {
-        if (!g) return { name: sweeper[`tier${index + 1}` as keyof Sweeper] as string, score: "N/A", val: 0 };
+        if (!g) return { name: sweeper[`tier${index + 1}` as keyof Sweeper] as string, score: "N/A", val: 0, isCut: false, isActive: false };
         
         let val = calculateScoreValue(g.score);
         let display = safeRender(g.score);
 
         if (g.isCut) {
+          hasCutPlayer = true;
           // Multiply relative-to-par score by 2
           val = val * 2;
           display = val > 0 ? `+${val}*` : val === 0 ? "E*" : `${val}*`;
         }
 
+        const displayThruSafe = safeRender(g.thru).toString().trim();
+        const isActive = /^\d+\*?$/.test(displayThruSafe);
+
         teamAggregatePar += val;
         playersCounted++;
-        return { name: g.name, score: display, val };
+        return { name: g.name, score: display, val, isCut: g.isCut, isActive };
       });
 
       return {
@@ -240,6 +249,7 @@ export function LeaderboardView() {
         teamAggregatePar,
         teamAggregateDisplay: teamAggregatePar > 0 ? `+${teamAggregatePar}` : teamAggregatePar === 0 ? "E" : `${teamAggregatePar}`,
         playersCounted,
+        hasCutPlayer,
         details
       };
     });
@@ -357,7 +367,13 @@ export function LeaderboardView() {
                       <img src={g.flag} alt="flag" className="w-6 h-4 object-cover border border-black/20" onError={(e) => e.currentTarget.style.display = 'none'} />
                       <span className="font-semibold">{safeRender(g.name)}</span>
                       {g.tier && <span className="text-[10px] bg-[var(--primary)] text-[var(--primary-foreground)] px-1.5 rounded font-bold">{g.tier}</span>}
-                      {g.isCut && <span className="text-[10px] bg-red-900/50 text-red-200 uppercase px-1.5 rounded font-bold">CUT</span>}
+                      {g.isActive && (
+                        <span className="relative flex w-2 h-2 ml-1" title="Currently Playing">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                      )}
+                      {g.isCut && <span className="text-[10px] bg-red-900/80 text-red-100 uppercase px-1.5 py-0.5 rounded font-bold tracking-wider">CUT</span>}
                     </div>
                   </td>
                   <td className="p-4 hidden md:table-cell font-medium opacity-80">{safeRender(g.owner)}</td>
@@ -391,7 +407,10 @@ export function LeaderboardView() {
             >
               <div className="flex justify-between items-start border-b border-[var(--border)] pb-4 mb-4">
                 <div>
-                  <div className="text-xs uppercase tracking-wider opacity-50 mb-1">Pos {idx + 1}</div>
+                  <div className="text-xs uppercase tracking-wider opacity-50 mb-1 flex items-center gap-2">
+                    Pos {idx + 1}
+                    {team.hasCutPlayer && <span className="bg-red-900/80 text-red-100 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">⚠️ Missed Cut</span>}
+                  </div>
                   <h3 className="text-xl font-bold">{team.sweeperName}</h3>
                 </div>
                 <div className={`text-3xl font-black ${team.teamAggregatePar < 0 ? 'text-[var(--primary)]' : ''}`}>
@@ -404,9 +423,15 @@ export function LeaderboardView() {
                   <div key={i} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
                        <span className="opacity-50 text-[10px]">T{i+1}</span>
-                       <span className="font-medium truncate max-w-[120px]" title={d.name}>{d.name}</span>
+                       <span className={`font-medium truncate max-w-[120px] ${d.isCut ? 'text-red-400 opacity-60 line-through' : ''}`} title={d.name}>{d.name}</span>
+                       {d.isActive && (
+                          <span className="relative flex w-1.5 h-1.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                          </span>
+                       )}
                     </div>
-                    <span className="font-bold font-mono">{d.score}</span>
+                    <span className={`font-bold font-mono ${d.isCut ? 'text-red-400 opacity-60' : ''}`}>{d.score}</span>
                   </div>
                 ))}
               </div>
