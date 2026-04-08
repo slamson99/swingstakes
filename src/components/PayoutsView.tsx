@@ -14,7 +14,7 @@ interface Sweeper {
 export function PayoutsView() {
   const { theme } = useTheme();
   const [participants, setParticipants] = useState<Sweeper[]>([]);
-  const [hioHit, setHioHit] = useState(false);
+  const [hioCount, setHioCount] = useState<0 | 1 | 2>(0);
   const [passcode, setPasscode] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -61,7 +61,6 @@ export function PayoutsView() {
         throw new Error(resData.error || "Update failed");
       }
       
-      // Update local state if success
       setParticipants(p => p.map(x => x.id === id ? { ...x, paid: !x.paid } : x));
     } catch (err: any) {
       alert(err.message);
@@ -70,15 +69,29 @@ export function PayoutsView() {
     }
   };
 
-  const totalPot = participants.length * 50; 
-  const baseWinner = 500;
-  const runnerUp = 250;
-  const teamTotal = 200;
-  const hioPrize = 50;
+  const ENTRY_FEE = 30;
+  const TOTAL_SWEEPERS = 20;
+  const totalPot = TOTAL_SWEEPERS * ENTRY_FEE; 
+  
+  const baseWinner = 250;
+  const runnerUp = 100;
+  const teamTotal = 150;
+  const hio1Prize = 70;
+  const hio2Prize = 30;
 
-  const actualWinnerPrize = hioHit ? baseWinner : baseWinner + hioPrize;
+  let actualWinnerPrize = baseWinner;
+  let rolledOverAmount = 0;
+
+  if (hioCount === 0) {
+    rolledOverAmount = hio1Prize + hio2Prize;
+    actualWinnerPrize += rolledOverAmount;
+  } else if (hioCount === 1) {
+    rolledOverAmount = hio2Prize;
+    actualWinnerPrize += rolledOverAmount;
+  }
+
   const paidCount = participants.filter(p => p.paid).length;
-  const totalCollected = paidCount * 50;
+  const totalCollected = paidCount * ENTRY_FEE;
 
   return (
     <div className="space-y-8">
@@ -92,7 +105,7 @@ export function PayoutsView() {
                 <DollarSign className="text-[var(--primary)]" />
                 Entry Fee Tracking
               </h3>
-              <p className="text-sm opacity-60">Track who has paid their $50 entry fee.</p>
+              <p className="text-sm opacity-60">Track who has paid their ${ENTRY_FEE} entry fee.</p>
             </div>
             {!isAdmin ? (
               <form onSubmit={handleAdminLogin} className="flex gap-2">
@@ -122,7 +135,7 @@ export function PayoutsView() {
             <div className="h-2 bg-black/40 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-[var(--primary)] transition-all duration-500" 
-                style={{ width: `${(paidCount / Math.max(1, participants.length)) * 100}%` }}
+                style={{ width: `${(paidCount / Math.max(1, TOTAL_SWEEPERS)) * 100}%` }}
               />
             </div>
           </div>
@@ -152,18 +165,36 @@ export function PayoutsView() {
             <Award className="text-[var(--primary)]" />
             Live Payout Pool
           </h3>
-          <p className="text-sm opacity-60 mb-6">If the tournament ended right now.</p>
+          <p className="text-sm opacity-60 mb-6">Displaying breakdown of the ${totalPot} pool.</p>
           
-          <div className="mb-6 flex items-center justify-between bg-black/20 p-4 rounded-xl border border-[var(--border)] cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setHioHit(!hioHit)}>
-            <div className="flex items-center gap-3">
-              <Target className={hioHit ? "text-[var(--primary)]" : "opacity-30"} />
+          <div className="mb-6 bg-black/20 p-4 rounded-xl border border-[var(--border)]">
+            <div className="flex items-center gap-3 mb-3">
+              <Target className="text-[var(--primary)]" />
               <div>
-                <p className="font-bold">Hole in One Hit?</p>
-                <p className="text-xs opacity-60">Toggle to calculate rollover.</p>
+                <p className="font-bold">Total Hole-in-Ones Hit?</p>
+                <p className="text-xs opacity-60">Adjust to calculate unallocated HIO rollovers.</p>
               </div>
             </div>
-            <div className={`w-12 h-6 rounded-full relative transition-colors ${hioHit ? "bg-[var(--primary)]" : "bg-black/50"}`}>
-              <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${hioHit ? "left-6" : "left-0.5"}`} />
+            
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setHioCount(0)}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-all ${hioCount === 0 ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-transparent" : "border-[var(--border)] hover:bg-white/5"}`}
+              >
+                0 Hit
+              </button>
+              <button 
+                onClick={() => setHioCount(1)}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-all ${hioCount === 1 ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-transparent" : "border-[var(--border)] hover:bg-white/5"}`}
+              >
+                1 Hit
+              </button>
+              <button 
+                onClick={() => setHioCount(2)}
+                className={`flex-1 py-2 text-sm font-bold rounded-lg border transition-all ${hioCount === 2 ? "bg-[var(--primary)] text-[var(--primary-foreground)] border-transparent" : "border-[var(--border)] hover:bg-white/5"}`}
+              >
+                2+ Hits
+              </button>
             </div>
           </div>
 
@@ -176,7 +207,7 @@ export function PayoutsView() {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-black text-yellow-400">${actualWinnerPrize}</p>
-                {!hioHit && <p className="text-[10px] text-yellow-400/70">+ $50 Rollover Included</p>}
+                {rolledOverAmount > 0 && <p className="text-[10px] text-yellow-400/70">+ ${rolledOverAmount} Rollover Included</p>}
               </div>
             </div>
 
@@ -202,17 +233,31 @@ export function PayoutsView() {
               </div>
             </div>
 
-            <div className={`bg-black/20 border border-[var(--border)] p-4 rounded-xl flex justify-between items-center relative overflow-hidden transition-opacity ${!hioHit ? "opacity-30" : ""}`}>
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-400" />
-              <div>
-                <p className="text-xs uppercase tracking-widest opacity-60 font-bold">Hole in One Pool</p>
-                <p className="font-bold text-sm">First to Hit HIO</p>
+            {hioCount >= 1 && (
+              <div className="bg-[#1a2f24] border border-green-500/30 p-4 rounded-xl flex justify-between items-center relative overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-400" />
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-green-400/70 font-bold">Hole in One (1st)</p>
+                  <p className="font-bold text-sm text-green-100">First to Hit HIO</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-black text-green-400">${hio1Prize}</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-lg font-black text-green-400">${hioPrize}</p>
-                {!hioHit && <p className="text-[10px] uppercase">Rolled Over</p>}
+            )}
+
+            {hioCount === 2 && (
+              <div className="bg-[#1a2f24] border border-green-500/30 p-4 rounded-xl flex justify-between items-center relative overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-400" />
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-green-400/70 font-bold">Hole in One (2nd)</p>
+                  <p className="font-bold text-sm text-green-100">Second to Hit HIO</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-black text-green-400">${hio2Prize}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
         </div>
