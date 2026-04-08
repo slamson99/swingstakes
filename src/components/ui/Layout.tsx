@@ -61,7 +61,7 @@ export function StandardLayout({ children, currentTab, setCurrentTab }: { childr
         </div>
       </nav>
 
-      <main className="relative z-10 flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
+      <main className="relative z-10 flex-1 p-2 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentTab}

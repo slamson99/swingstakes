@@ -337,19 +337,19 @@ export function LeaderboardView() {
       </div>
 
       {viewMode === "Individual" ? (
-        <div className="overflow-x-auto rounded-xl border border-[var(--border)] glass-panel">
-          <table className="w-full text-left border-collapse">
+        <div className="w-full overflow-x-auto overscroll-x-contain rounded-xl border border-[var(--border)] glass-panel">
+          <table className="w-full text-left border-collapse min-w-max text-sm md:text-base">
             <thead>
               <tr className="bg-black/20 text-xs uppercase tracking-wider cursor-pointer">
-                <th className="p-4 w-16 text-center hover:bg-white/5" onClick={() => handleSort("position")}>Pos <SortIcon colKey="position" /></th>
-                <th className="p-4 hover:bg-white/5" onClick={() => handleSort("name")}>Golfer <SortIcon colKey="name" /></th>
-                <th className="p-4 hidden md:table-cell hover:bg-white/5" onClick={() => handleSort("owner")}>Owner <SortIcon colKey="owner" /></th>
-                <th className="p-4 text-center hover:bg-white/5" onClick={() => handleSort("r1")}>R1 <SortIcon colKey="r1" /></th>
-                <th className="p-4 text-center hover:bg-white/5" onClick={() => handleSort("r2")}>R2 <SortIcon colKey="r2" /></th>
-                <th className="p-4 text-center hover:bg-white/5" onClick={() => handleSort("r3")}>R3 <SortIcon colKey="r3" /></th>
-                <th className="p-4 text-center hover:bg-white/5" onClick={() => handleSort("r4")}>R4 <SortIcon colKey="r4" /></th>
-                <th className="p-4 text-center hover:bg-white/5" onClick={() => handleSort("thru")}>Thru <SortIcon colKey="thru" /></th>
-                <th className="p-4 text-right hover:bg-white/5" onClick={() => handleSort("score")}>Score <SortIcon colKey="score" /></th>
+                <th className="p-3 md:p-4 w-12 md:w-16 text-center hover:bg-white/5" onClick={() => handleSort("position")}>Pos <SortIcon colKey="position" /></th>
+                <th className="p-3 md:p-4 hover:bg-white/5" onClick={() => handleSort("name")}>Golfer <SortIcon colKey="name" /></th>
+                <th className="p-3 md:p-4 hidden md:table-cell hover:bg-white/5" onClick={() => handleSort("owner")}>Owner <SortIcon colKey="owner" /></th>
+                <th className="p-3 md:p-4 text-center hidden md:table-cell hover:bg-white/5" onClick={() => handleSort("r1")}>R1 <SortIcon colKey="r1" /></th>
+                <th className="p-3 md:p-4 text-center hidden md:table-cell hover:bg-white/5" onClick={() => handleSort("r2")}>R2 <SortIcon colKey="r2" /></th>
+                <th className="p-3 md:p-4 text-center hidden md:table-cell hover:bg-white/5" onClick={() => handleSort("r3")}>R3 <SortIcon colKey="r3" /></th>
+                <th className="p-3 md:p-4 text-center hidden md:table-cell hover:bg-white/5" onClick={() => handleSort("r4")}>R4 <SortIcon colKey="r4" /></th>
+                <th className="p-3 md:p-4 text-center hover:bg-white/5" onClick={() => handleSort("thru")}>Thru <SortIcon colKey="thru" /></th>
+                <th className="p-3 md:p-4 text-right hover:bg-white/5" onClick={() => handleSort("score")}>Score <SortIcon colKey="score" /></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
@@ -361,28 +361,28 @@ export function LeaderboardView() {
                   key={g.id} 
                   className={`hover:bg-white/5 transition-colors ${g.isCut ? "opacity-50" : ""}`}
                 >
-                  <td className="p-4 text-center font-bold">{safeRender(g.position)}</td>
-                  <td className="p-4">
+                  <td className="p-3 md:p-4 text-center font-bold">{safeRender(g.position)}</td>
+                  <td className="p-3 md:p-4">
                     <div className="flex items-center gap-2">
-                      <img src={g.flag} alt="flag" className="w-6 h-4 object-cover border border-black/20" onError={(e) => e.currentTarget.style.display = 'none'} />
+                      <img src={g.flag} alt="flag" className="w-5 h-3 md:w-6 md:h-4 object-cover border border-black/20" onError={(e) => e.currentTarget.style.display = 'none'} />
                       <span className="font-semibold">{safeRender(g.name)}</span>
-                      {g.tier && <span className="text-[10px] bg-[var(--primary)] text-[var(--primary-foreground)] px-1.5 rounded font-bold">{g.tier}</span>}
+                      {g.tier && <span className="text-[9px] md:text-[10px] bg-[var(--primary)] text-[var(--primary-foreground)] px-1.5 rounded font-bold">{g.tier}</span>}
                       {g.isActive && (
-                        <span className="relative flex w-2 h-2 ml-1" title="Currently Playing">
+                        <span className="relative flex w-1.5 h-1.5 md:w-2 md:h-2 ml-1" title="Currently Playing">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 md:h-2 md:w-2 bg-green-500"></span>
                         </span>
                       )}
-                      {g.isCut && <span className="text-[10px] bg-red-900/80 text-red-100 uppercase px-1.5 py-0.5 rounded font-bold tracking-wider">CUT</span>}
+                      {g.isCut && <span className="text-[9px] md:text-[10px] bg-red-900/80 text-red-100 uppercase px-1.5 py-0.5 rounded font-bold tracking-wider">CUT</span>}
                     </div>
                   </td>
-                  <td className="p-4 hidden md:table-cell font-medium opacity-80">{safeRender(g.owner)}</td>
-                  <td className="p-4 text-center opacity-60">{safeRender(g.r1) || "-"}</td>
-                  <td className="p-4 text-center opacity-60">{safeRender(g.r2) || "-"}</td>
-                  <td className="p-4 text-center opacity-60">{safeRender(g.r3) || "-"}</td>
-                  <td className="p-4 text-center opacity-60">{safeRender(g.r4) || "-"}</td>
-                  <td className="p-4 text-center text-sm font-medium opacity-80">{safeRender(g.displayThru) || "-"}</td>
-                  <td className={`p-4 text-right font-bold text-lg ${g.finalScoreVal < 0 ? 'text-red-400' : ''}`}>
+                  <td className="p-3 md:p-4 hidden md:table-cell font-medium opacity-80">{safeRender(g.owner)}</td>
+                  <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r1) || "-"}</td>
+                  <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r2) || "-"}</td>
+                  <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r3) || "-"}</td>
+                  <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r4) || "-"}</td>
+                  <td className="p-3 md:p-4 text-center text-xs md:text-sm font-medium opacity-80">{safeRender(g.displayThru) || "-"}</td>
+                  <td className={`p-3 md:p-4 text-right font-bold text-base md:text-lg ${g.finalScoreVal < 0 ? 'text-red-400' : ''}`}>
                     {g.isCut ? <span title="Missing Cut Logic: Score * 2">{safeRender(g.finalScoreDisplay)}*</span> : safeRender(g.finalScoreDisplay)}
                   </td>
                 </motion.tr>
