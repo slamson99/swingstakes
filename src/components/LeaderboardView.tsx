@@ -63,6 +63,12 @@ export function LeaderboardView() {
         const espnData = await espnRes.json();
         const sweepersData = await sweepersRes.json();
 
+        console.log("Client-Side Prop Reception:", sweepersData);
+
+        if (!sweepersRes.ok) {
+           console.error("🚨 Data link broke inside the Server Route proxy mapping! API Responded:", sweepersData.error || sweepersRes.statusText);
+        }
+
         if (espnData.leaderboard) setGolfers(espnData.leaderboard);
         if (espnData.lastSynced) setLastSynced(espnData.lastSynced);
         if (sweepersData.sweepers) setSweepers(sweepersData.sweepers);

@@ -6,17 +6,22 @@ export const dynamic = 'force-dynamic'; // Aggressive cache busting
 export const revalidate = 0;
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const context = searchParams.get('tournament') || 'masters';
-  
-  console.log(`[API /sweepers] Fetching GET request with tournament context: ${context}`);
-  const sweepers = await getTournamentData(context);
-  console.log(`[API /sweepers] Returning ${sweepers.length} sweepers array length back to client.`);
-  
-  return NextResponse.json({
-    sweepers,
-    lastSynced: formatAEST(new Date()),
-  });
+  try {
+    const { searchParams } = new URL(request.url);
+    const context = searchParams.get('tournament') || 'masters';
+    
+    console.log(`[API /sweepers] Fetching GET request with tournament context: ${context}`);
+    const sweepers = await getTournamentData(context);
+    console.log(`[API /sweepers] Returning ${sweepers.length} sweepers array length back to client.`);
+    
+    return NextResponse.json({
+      sweepers,
+      lastSynced: formatAEST(new Date()),
+    });
+  } catch (error: any) {
+    console.error(`[API /sweepers] FATAL EXCEPTION CAUGHT:`, error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
