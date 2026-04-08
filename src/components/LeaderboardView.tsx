@@ -285,23 +285,23 @@ export function LeaderboardView() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
           <h2 className="text-3xl font-black uppercase tracking-wider mb-2">Live Leaderboard</h2>
           <p className="opacity-60 text-sm">Real-time data synced via ESPN. {lastSynced && `Last Synced: ${lastSynced}`}</p>
         </div>
         
-        <div className="flex gap-4 w-full md:w-auto items-end">
-          <div className="flex bg-black/20 p-1 rounded-lg border border-[var(--border)]">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-end flex-wrap justify-between">
+          <div className="flex bg-black/20 p-1 rounded-lg border border-[var(--border)] w-full sm:w-auto mt-2 sm:mt-0">
             <button 
               onClick={() => setViewMode("Individual")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === "Individual" ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm" : "opacity-60 hover:opacity-100"}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === "Individual" ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm" : "opacity-60 hover:opacity-100"}`}
             >
               <User className="w-4 h-4" /> Individuals
             </button>
             <button 
               onClick={() => setViewMode("Teams")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === "Teams" ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm" : "opacity-60 hover:opacity-100"}`}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all ${viewMode === "Teams" ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm" : "opacity-60 hover:opacity-100"}`}
             >
               <Users className="w-4 h-4" /> Teams
             </button>
@@ -315,12 +315,12 @@ export function LeaderboardView() {
           </button>
 
           {viewMode === "Individual" && (
-            <div className="relative w-full md:w-48 hidden md:block">
+            <div className="relative w-full sm:w-48 mt-2 sm:mt-0">
               <label className="text-xs uppercase tracking-widest opacity-50 mb-1 block">Filter</label>
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-3 opacity-50" />
                 <select 
-                  className="w-full bg-[var(--card)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  className="w-full bg-[var(--card)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm md:text-base outline-none cursor-pointer"
                   value={searchOwner}
                   onChange={e => setSearchOwner(e.target.value)}
                 >
