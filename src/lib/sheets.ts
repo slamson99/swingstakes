@@ -1,6 +1,5 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
-import { mockParticipants, mockDraft } from './mock-data';
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID || '';
 const CLIENT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
@@ -22,10 +21,18 @@ export async function getGoogleSheet() {
       key: PRIVATE_KEY,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
-    cachedDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
+
+    // 1. Create a temporary document
+    const tempDoc = new GoogleSpreadsheet(SHEET_ID, jwt);
+
     try {
-      await cachedDoc.loadInfo();
+      // 2. Attempt to load the info first
+      await tempDoc.loadInfo();
+      // 3. ONLY cache it if the load is 100% successful
+      cachedDoc = tempDoc; 
     } catch (e: any) {
+      // Ensure the cache remains empty so the next request tries again
+      cachedDoc = null; 
       throw new Error("Google Sheets API Error loading doc info: " + e.message);
     }
   }
