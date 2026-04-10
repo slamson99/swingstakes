@@ -100,7 +100,10 @@ export function LeaderboardView() {
 
   const calculateScoreValue = (rawScore: any) => {
     if (rawScore == null) return 0;
-    const scoreStr = String(rawScore).trim();
+    let scoreStr = String(rawScore).trim();
+    if (typeof rawScore === "object") {
+      scoreStr = String(rawScore.displayValue || rawScore.value || "E").trim();
+    }
     if (scoreStr === "" || scoreStr === "E") return 0;
     if (scoreStr.startsWith("+")) return parseInt(scoreStr.replace("+", ""), 10) || 0;
     if (scoreStr.startsWith("-")) return parseInt(scoreStr, 10) || 0;
@@ -394,10 +397,18 @@ export function LeaderboardView() {
                       </div>
                     </td>
                     <td className="p-3 md:p-4 hidden md:table-cell font-medium opacity-80">{safeRender(g.owner)}</td>
-                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r1) || "-"}</td>
-                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r2) || "-"}</td>
-                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r3) || "-"}</td>
-                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">{safeRender(g.r4) || "-"}</td>
+                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">
+                      {g.linescores?.[0]?.value && g.linescores?.[0]?.displayValue ? <span>{g.linescores[0].value} <span className="text-[10px] text-gray-400 ml-0.5">({g.linescores[0].displayValue})</span></span> : (safeRender(g.r1) || "-")}
+                    </td>
+                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">
+                      {g.linescores?.[1]?.value && g.linescores?.[1]?.displayValue ? <span>{g.linescores[1].value} <span className="text-[10px] text-gray-400 ml-0.5">({g.linescores[1].displayValue})</span></span> : (safeRender(g.r2) || "-")}
+                    </td>
+                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">
+                      {g.linescores?.[2]?.value && g.linescores?.[2]?.displayValue ? <span>{g.linescores[2].value} <span className="text-[10px] text-gray-400 ml-0.5">({g.linescores[2].displayValue})</span></span> : (safeRender(g.r3) || "-")}
+                    </td>
+                    <td className="p-3 md:p-4 text-center hidden md:table-cell opacity-60">
+                      {g.linescores?.[3]?.value && g.linescores?.[3]?.displayValue ? <span>{g.linescores[3].value} <span className="text-[10px] text-gray-400 ml-0.5">({g.linescores[3].displayValue})</span></span> : (safeRender(g.r4) || "-")}
+                    </td>
                     <td className="p-3 md:p-4 text-center text-xs md:text-sm font-medium opacity-80">{safeRender(g.displayThru) || "-"}</td>
                     <td className={`p-3 md:p-4 text-right font-bold text-base md:text-lg ${g.finalScoreVal < 0 ? 'text-red-400' : ''}`}>
                       {g.isCut ? <span title="Missing Cut Logic: Score * 2">{safeRender(g.finalScoreDisplay)}*</span> : safeRender(g.finalScoreDisplay)}

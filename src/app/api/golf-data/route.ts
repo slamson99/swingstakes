@@ -43,6 +43,7 @@ export async function GET() {
       const fullLinescores = scores.map((s: any) => ({
         period: s.period,
         value: s.value,
+        displayValue: s.displayValue,
         inScore: s.inScore,
         outScore: s.outScore,
       }));
