@@ -40,13 +40,25 @@ export async function GET() {
       // Calculate movement
       const movement = c.movement || 0;
       
-      const fullLinescores = scores.map((s: any) => ({
-        period: s.period,
-        value: s.value,
-        displayValue: s.displayValue,
-        inScore: s.inScore,
-        outScore: s.outScore,
-      }));
+      // Parse explicit Course Par from API, dynamically falling back to Aronimink's 70
+      const course = event.courses?.[0];
+      const coursePar = course?.shotsToPar || course?.par || (tournamentName.toLowerCase().includes("pga championship") ? 70 : 72);
+
+      const fullLinescores = scores.map((s: any) => {
+        let dv = s.displayValue;
+        // Conditional fallback if ESPN drops explicit par relations
+        if (!dv && s.value) {
+          const diff = s.value - coursePar;
+          dv = diff > 0 ? `+${diff}` : diff === 0 ? "E" : `${diff}`;
+        }
+        return {
+          period: s.period,
+          value: s.value,
+          displayValue: dv,
+          inScore: s.inScore,
+          outScore: s.outScore,
+        };
+      });
 
       return {
         id: athlete.id,
