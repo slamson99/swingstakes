@@ -31,4 +31,5 @@ export const mockHallOfFame = [
   { year: "2025", major: "PGA", indiWinner: "Aidos crim-scottie show", indiRunner: "David No-Parrs", teamWinner: "Money Matt 3 time teams champ", noteable: "Brad +50 raise the bat" },
   { year: "2025", major: "US Open", indiWinner: "Gaz", indiRunner: "Spaun Spilkin", teamWinner: "Bobby Baron", noteable: "Rowan 'how did i get here'" },
   { year: "2025", major: "British Open", indiWinner: "+91 Team Mark", indiRunner: "", teamWinner: "", noteable: "" },
+  { year: "2026", major: "Masters", indiWinner: "Gary Spilkin (Rory B2B!!)", indiRunner: "David S (Scottie - always ends up with him!)", teamWinner: "Alexa Baron (Justin Rose & his mates. Beginners luck strikes again.)", noteable: "Shane Lowry Hole-in-One!" },
 ];
