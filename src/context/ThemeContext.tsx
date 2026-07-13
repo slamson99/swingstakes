@@ -12,7 +12,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<MajorTheme>("pga");
+  const [theme, setTheme] = useState<MajorTheme>("open");
 
   useEffect(() => {
     // Apply theme to html wrapper
