@@ -54,6 +54,7 @@ export function LeaderboardView() {
   });
 
   const [lastSynced, setLastSynced] = useState<string>("");
+  const [apiTournamentName, setApiTournamentName] = useState<string>("Golf");
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
@@ -70,6 +71,7 @@ export function LeaderboardView() {
 
         if (espnData.leaderboard) setGolfers(espnData.leaderboard);
         if (espnData.lastSynced) setLastSynced(espnData.lastSynced);
+        if (espnData.tournamentName) setApiTournamentName(espnData.tournamentName);
         if (espnData.isFinal) setIsFinal(true);
         if (sweepersData.sweepers) setSweepers(sweepersData.sweepers);
       } catch (e) {
@@ -296,7 +298,7 @@ export function LeaderboardView() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
         <div>
           <h2 className="text-3xl font-black uppercase tracking-wider mb-2">{isFinal ? "Final Results" : "Live Leaderboard"}</h2>
-          <p className="opacity-60 text-sm">Real-time data synced via ESPN. {lastSynced && `Last Synced: ${lastSynced}`}</p>
+          <p className="opacity-60 text-sm">Real-time {apiTournamentName || "Golf"} data synced via ESPN. {lastSynced && `Last Synced: ${lastSynced}`}</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-end flex-wrap justify-between">

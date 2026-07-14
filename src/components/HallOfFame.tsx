@@ -53,25 +53,21 @@ export function HallOfFameView() {
             </div>
 
             <div className="space-y-4 relative z-10">
-              {entry.indiWinner && (
-                <div className="flex items-start gap-3">
-                  <Trophy className="w-5 h-5 mt-1 text-[var(--primary)]" />
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider opacity-60">Indi Winner</p>
-                    <p className="font-semibold text-[1.1rem] leading-tight">{entry.indiWinner}</p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <Trophy className="w-5 h-5 mt-1 text-[var(--primary)]" />
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-60">Indi Winner</p>
+                  <p className="font-semibold text-[1.1rem] leading-tight">{entry.indiWinner || "-"}</p>
                 </div>
-              )}
+              </div>
               
-              {entry.teamWinner && (
-                <div className="flex items-start gap-3">
-                  <Star className="w-5 h-5 mt-1 text-[var(--primary)]" />
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wider opacity-60">Team Winner</p>
-                    <p className="font-semibold text-[1.1rem] leading-tight">{entry.teamWinner}</p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <Star className="w-5 h-5 mt-1 text-[var(--primary)]" />
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider opacity-60">Team Winner</p>
+                  <p className="font-semibold text-[1.1rem] leading-tight">{entry.teamWinner || "-"}</p>
                 </div>
-              )}
+              </div>
 
               <div className="h-px bg-[var(--border)] my-4 w-full" />
 

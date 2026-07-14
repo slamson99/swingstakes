@@ -32,4 +32,6 @@ export const mockHallOfFame = [
   { year: "2025", major: "US Open", indiWinner: "Gaz", indiRunner: "Spaun Spilkin", teamWinner: "Bobby Baron", noteable: "Rowan 'how did i get here'" },
   { year: "2025", major: "British Open", indiWinner: "+91 Team Mark", indiRunner: "", teamWinner: "", noteable: "" },
   { year: "2026", major: "Masters", indiWinner: "Gary Spilkin (Rory B2B!!)", indiRunner: "David S (Scottie - always ends up with him!)", teamWinner: "Alexa Baron (Justin Rose & his mates. Beginners luck strikes again.)", noteable: "Shane Lowry Hole-in-One!" },
+  { year: "2026", major: "PGA", indiWinner: "David Sellers (Aaron Rai)", indiRunner: "", teamWinner: "David Sellers", noteable: "Very annoying he keeps winning." },
+  { year: "2026", major: "US Open", indiWinner: "", indiRunner: "", teamWinner: "", noteable: "Did not participate." },
 ];
